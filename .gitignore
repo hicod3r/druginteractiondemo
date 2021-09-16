@@ -11,3 +11,12 @@
 .settings/org.eclipse.wst.validation.prefs
 .classpath
 .project
+target/com.google.ce.demos.DrugInteraction-0.1.0-SNAPSHOT/WEB-INF/classes/com/google/ce/demos/DrugInteraction/CallNLP.class
+target/com.google.ce.demos.DrugInteraction-0.1.0-SNAPSHOT/WEB-INF/classes/com/google/ce/demos/DrugInteraction/Compression.class
+target/com.google.ce.demos.DrugInteraction-0.1.0-SNAPSHOT/WEB-INF/classes/com/google/ce/demos/DrugInteraction/DrugConsole.class
+target/com.google.ce.demos.DrugInteraction-0.1.0-SNAPSHOT/WEB-INF/classes/com/google/ce/demos/DrugInteraction/HealthcareNLPObject.class
+target/m2e-wtp/web-resources/META-INF/MANIFEST.MF
+target/m2e-wtp/web-resources/META-INF/maven/com.google.ce.demos/com.google.ce.demos.DrugInteraction/pom.properties
+target/m2e-wtp/web-resources/META-INF/maven/com.google.ce.demos/com.google.ce.demos.DrugInteraction/pom.xml
+target/test-classes/com/google/ce/demos/DrugInteraction/HelloAppEngineTest.class
+target/test-classes/com/google/ce/demos/DrugInteraction/MockHttpServletResponse.class
