@@ -1,0 +1,519 @@
+
+<html>
+
+<head>
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+
+    <!-- make look googly -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <!-- vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+
+    <style>
+        /* .entity:hover {
+            background-color: yellow;
+            cursor: pointer;
+        } */
+
+        .entity {
+            font-weight: bold;
+        }
+
+        .medicine {
+            color: #DB4437;
+
+        }
+
+        .laboratory {
+            color: #4285F4;
+
+        }
+
+        .body {
+            color: #F4B400;
+        }
+
+        .procedure {
+            color: #0F9D58;
+        }
+
+        .mdl-radio{
+            margin-right: 1em;
+        }
+
+        input[type="textarea"]:disabled{
+            color: rgba(0,0,0,.60);
+        }
+
+        #demo-app{
+            margin: auto;
+            width: 40%;
+            min-width: 900px;
+        }
+
+        #response-container{
+            margin-top:30px;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        textarea {
+            font-family: var(--paper-font-subhead_-_font-family);
+            -webkit-font-smoothing: var(--paper-font-subhead_-_-webkit-font-smoothing);
+            font-size: var(--paper-font-subhead_-_font-size);
+            font-weight: var(--paper-font-subhead_-_font-weight);
+            line-height: var(--paper-font-subhead_-_line-height);
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            flex-grow: 1;
+            height: 161px;
+            outline: none;
+            overflow: auto;
+            padding: 10px 14px;
+            resize: none;
+            transition: background-color ease .5s , border-color ease .5s;
+            width: 80%;
+        }
+
+        #button{
+            vertical-align: top;
+            width: 120px;
+            height: 50px;
+            font-size: 1.2em;
+            font-weight: 100;
+            margin-left: 20px;
+            border-radius: 5px;
+        }
+
+        .medical-card{
+            padding: 26px;
+            display: inline-block;
+            margin: 14px;
+            width: 40%;
+            height: 187px;
+            vertical-align: top;
+        }
+
+        .card-columns{
+            column-count : 2;
+            column-gap: 14px;
+        }
+
+        .entity-medical-card{
+            padding: 26px;
+            display: inline-block;
+            margin: 14px;
+            width: 340px;
+            /* height: 187px; */
+            vertical-align: top;
+        }
+        .code-block{
+            overflow-x: scroll;
+            background-color: #f8f9fa;
+            padding: 16px;
+            max-height: 700px;
+        }
+
+        .mdl-chip{
+            margin: 3px 2px;
+        }
+
+
+       .blue-highlighting{
+            background-color:#d2e3fc;
+       }
+       
+       .blue-text{
+            color: #4285F4;
+       }
+
+       .material-icons{
+        vertical-align: middle;
+       }
+
+       #relation-extraction-panel{
+        padding: 30px;
+       }
+
+    </style>
+    
+    <link rel="icon" href="https://www.eehealth.org/favicon.ico" type="image/x-icon">
+    
+    <title>NLP API Demo for EEH</title>
+
+
+</head>
+
+<body>
+
+
+    <div class="mdl-grid" id="app">
+
+        <div style="text-align: center" class="mdl-cell mdl-cell--12-col">
+            <h2>Natural Language Healthcare API Demo</h2>
+            <img style = "width: 400px; margin-bottom: 15px" src = "/logo.png"></img>
+            
+        </div>  
+
+        <div id="demo-app">
+
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-1">
+                <input type="radio" id="option-1" class="mdl-radio__button" name="text_doc" value=0 v-model="text_option" checked v-bind:disabled="loading">
+                <span class="mdl-radio__label">Sample Medical record</span>
+            </label>
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-2">
+                <input type="radio" id="option-2" class="mdl-radio__button" name="text_doc" value=1 v-model="text_option" v-bind:disabled="loading">
+                <span class="mdl-radio__label">Sample Research paper</span>
+            </label>
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-3">
+                <input type="radio" id="option-3" class="mdl-radio__button" name="text_doc" value=2 v-model="text_option" v-bind:disabled="loading">
+                <span class="mdl-radio__label">Sample Lab Form</span>
+            </label>
+            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-4">
+                <input type="radio" id="option-4" class="mdl-radio__button" name="text_doc" value="custom" v-model="text_option"  v-bind:disabled="loading">
+                <span class="mdl-radio__label">Custom (plain text)</span>
+            </label>
+
+            <!-- Floating Multiline Textfield -->
+            <div style="margin-top: 20px;">
+                <textarea
+                type="text" rows="10" id="input" 
+                v-bind:disabled="loading || using_sample_text" 
+                placeholder="Enter your medical text here..."
+                v-model="input_text">
+                </textarea>
+
+                <button id="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" 
+                onclick="analyse_text()" 
+                v-bind:disabled="loading || (input_text.length == 0)">ANALYZE</button>
+            </div>
+
+            <div id="loading-bar" v-if="loading" 
+            class="mdl-progress mdl-js-progress mdl-progress__indeterminate" 
+            style="width:100%; margin-top: 23px;"></div>
+
+            <div id="response-container" v-if="medical_object">
+
+                <p><span v-bind:class="[get_css_class_for_type(text_part.type), {entity: !text_part.normal_text}]"
+                        v-for="text_part in parsed_text_parts">
+                        <!-- <span v-if="!text_part.normal_text"><</span> -->
+                                {{text_part.text}}
+                        <!-- <span v-if="!text_part.normal_text">></span> -->
+                        </span>
+                </p>
+
+                <div id="tabs" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+                    <div class="mdl-tabs__tab-bar">
+                        <a href="#knowledge-exactraction-panel" class="mdl-tabs__tab is-active">Knowledge Panel</a>
+                        <a href="#context-assessment-panel" class="mdl-tabs__tab">Context Assessment</a>
+                        <a href="#relation-extraction-panel" class="mdl-tabs__tab">Relation Extraction</a>
+                        <a href="#interaction-panel" class="mdl-tabs__tab">Interaction Panel</a>
+                        
+                        <a href="#json-panel" class="mdl-tabs__tab">JSON</a>
+                    </div>
+
+                    <div class="mdl-tabs__panel is-active" id="knowledge-exactraction-panel">
+
+                        <h5 v-if="!medical_object.entities">No entities found</h5>
+
+                        <div class="card-columns">
+                            <div v-for="entity in medical_object.entities" class="entity-medical-card mdl-shadow--4dp">
+                                <p><b>{{entity.preferredTerm}}</b> - [<i>{{entity.entityId}}</i>]</p>
+                                <div>
+                                    <span class="mdl-chip" v-for="code in entity.vocabularyCodes">
+                                        <span class="mdl-chip__text">{{code}}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- <ul>
+                            <li v-for="entity in medical_object.entities">{{entity.preferredTerm}}
+                                [<i>{{entity.entityId}}</i>]
+                                - {{entity.vocabularyCodes}}
+                            </li>
+                        </ul> -->
+                    </div>
+                    <div class="mdl-tabs__panel" id="context-assessment-panel">
+                        <h5 v-if="!medical_object.entityMentions">No entities mentions found</h5>
+                       
+                            <div v-for="mention in medical_object.entityMentions" class="medical-card mdl-shadow--4dp">
+                                <p><b>{{mention.text.content}}</b></p>
+                                <p v-if="mention.subject"> Subject - {{mention.subject.value}}
+                                </p>
+                                <p v-if="mention.certaintyAssessment"> Certainty Assessment -
+                                    {{mention.certaintyAssessment.value}}</p>
+                                <p v-if="mention.temporalAssessment"> Temporal assessment -
+                                    {{mention.temporalAssessment.value}}</p>
+                                <p v-if="mention.confidence">Overall Confidence - {{mention.confidence.toFixed(2)}}</p>
+                            </div>
+                     
+                    </div>
+                    <div class="mdl-tabs__panel" id="relation-extraction-panel">
+                        <h5 v-if="!medical_object.relationships">No relationships found</h5>
+
+                        <div v-for="relationship in relationship_list">
+                            <span class="blue-text"><b>{{relationship.text}}</b></span>
+                            <span v-for="connection in relationship.objects">
+                                <span class="material-icons">
+                                    arrow_right_alt
+                                </span>
+                                <span>{{connection}}</span>
+                            </span>
+                        </div>
+
+
+     
+                    </div>
+                    
+                    
+                    <div class="mdl-tabs__panel" id="interaction-panel">
+                        <h5 v-if="!medical_object.interaction">No Interactions found</h5>
+                        
+                         <div v-for="interaction in medical_object.interaction">
+                            <span class="blue-text"><b>{{interaction}}</b></span>
+                        </div>
+     
+                    </div>
+                    
+                    
+                    <div class="mdl-tabs__panel" id="json-panel">
+                        <div class="mdl-grid">
+                            <div class="mdl-cell mdl-cell--12-col">
+                                <h6>Request URL</h6>
+<pre class="code-block">
+<code><b>POST:</b> https://healthcare.googleapis.com/v1alpha2/projects/healthcare-nlp-demo/locations/us-central1/services/nlp:analyzeEntities</code>
+</pre>
+                            </div>
+                            <div class="mdl-cell mdl-cell--12-col">
+                                <h6>Request body</h6>
+<pre class="code-block">
+<code>{{JSON.stringify({"document_content": last_submitted_text}, null, 2)}}</code>
+</pre>
+
+                            </div>
+                            <div class="mdl-cell mdl-cell--12-col">
+                                <h6>Response
+                                    <button style="float:right" class="mdl-button mdl-js-button mdl-button--raised" onclick="download_response()">
+                                    Download JSON Response
+                                    </button>
+                                </h6>
+
+<pre class="code-block">
+<code>{{JSON.stringify(response_body, null, 2)}}</code>
+</pre>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // sample medical texts
+        const medical_record = "RECORD #155092 121547079 | CMH | 18332143 | | 268595 | 2/17/1995 12:00:00 AM | Discharge Summary | Signed | DIS | Admission Date: 1/1/1995 Report Status: Signed Discharge Date: 11/29/1995 PRINCIPAL DIAGNOSIS: POST MYOCARDIAL INFARCTION ANGINA SIGNIFICANT PROBLEMS: 1. Coronary artery disease 2. Hypertension 3. Non-insulin dependent diabetes mellitus HISTORY OF PRESENT ILLNESS: Patient is a 72 year old white male Status post recent myocardial infarction who was admitted for recurrent chest discomfort. On the 1 of July , the patient noticed a \\\"uncomfortable chest sensation\\\" as he was driving. He experienced diaphoresis at that time , but no shortness of breath and no nausea or vomiting. He was seen at an outside hospital and noted to have 2-3 mm ST elevations in leads 2 , 3 , FV5 and V6 ( Humpde Hospital ). The patient was given TPA , Heparin intravenous and aspirin. His peak CPK was noted to be 5 , 742 with an MB fraction of 199. The patient's hospital stay was complicated by frequent PVCs on cardiac monitor , for which he was temporarily treated with Lidocaine. Immediately after the TPA infusion , the patient noted that his chest discomfort which was located primarily on the left side , across the midline , to the right. An echocardiogram that was performed , showed an ejection fraction of 60% with posterolateral dyssynergia. On the 16 of September of July , the patient was discharged from Cocku Health after a submax ETT. He reached a heart rate of 95 and blood pressure 168/90. On the 25 of June , the patient noted that he had a recurrence of this vague chest discomfort as he was sitting and talking to friends. He took a sublingual Nitroglycerin without relief. This chest discomfort episode resolved spontaneously after approximately ten minutes. On the 8 of September , the patient was at a party and , again , developed a similar anxious sensation which was similar to the feeling that he experienced prior to his myocardial infarction. He took two sublingual Nitroglycerin again , without relief , and his discomfort resolved after two hours. Patient denies PND , orthopnea , or edema. The patient was admitted on the 8 of September for cardiac catheterization to evaluate post myocardial infarction angina. ALLERGIES: Include Penicillin and Toprol which leads to an itch. PAST MEDICAL HISTORY: Significant for hypertension for five to six years and diet controlled diabetes mellitus times four years. ADMISSION MEDICINES: Ecotrin , Vasotec 20 mg po qd. Atenolol 50 mg po qd. Nitropatch which was to be continued the day of admission. SOCIAL HISTORY: The patient has never smoked and he denies alcohol use. FAMILY HISTORY: His father died at the age of 48 with the history of coronary artery disease. The mother died at the age of 80 secondary to congestive heart failure. His brother died of a myocardial infarction in his 60s. ADMITTING PHYSICAL EXAM: BP 120/80. Heart rate 54. Temperature 97.2 , with 95% room air saturation. Patient is a well-developed elderly male , lying in bed in no acute distress. HEENT exam reveals pupils are equal , round , reactive to light and accommodation , oropharynx is within normal limits. Neck exam is supple with jugular venous pressure 4 cm and carotids without bruits. Heart exam shows S1 and S2 with a positive S4 , 1/6 systolic murmur heard at the left lower sternal border. Chest is clear to auscultation bilaterally. Abdominal exam is benign with positive bowel sounds , soft and non-tender and is non-distended. Extremities exam shows no clubbing , cyanosis , or edema , with +2 pulses bilaterally at the femoral deep tendon , and posterior tibial sites. Rectal exam is guaiac negative. Neurological exam is non-focal , with down-going toes bilaterally , and 2+ reflexes bilaterally. ADMISSION LAB: Sodium 139 , potassium 4.9 , chloride 190 , bicarbonate 26 , BUN 23 , creatinine 1.4 , glucose 183 , white count 9.3 , hematocrit 36 with platelets of 274 , CK 219 , LDH 407. Urinalysis negative. Electrocardiogram showed sinus rhythm 55 , axis 20 , normal intervals , biphasic V4 through V6 and 1 mm ST elevation in V5 and V6. chest x-ray was within normal limits. HOSPITAL COURSE: The physical therapy was started on Heparin immediately after admission for presumed post myocardial infarction angina. He underwent cardiac catheterization the morning following admission. This demonstrated a proximal 100% occluded left circ lesion which was easily angio-positive to 20% residual. This was complicated by a small dissection. An LV gram demonstrated inferior hypokinesis. The patient tolerated the procedure well without significant decrease in hematocrit or increase in creatinine. He was heparinized for a full forty-eight hours post cardiac catheterization procedure. At the time of discharge , he was ambulating. At no time during this admission did he develop chest discomfort. The patient was discharged to home in good condition and will be followed by his cardiologist in one week post discharge. DISCHARGE MEDICATIONS: Aspirin 325 mg po qd. Atenolol 50 mg po qd. Vasotec 20 mg po qd. Sublingual Nitroglycerin prn. Dictated By: MARC T. JAJI , M.D. HK19 Attending: DAMIAN GLOMB , M.D. UX16 LC444/5227 Batch: 3436 Index No. T0DUWD0PBV D: 8/2/95 T: 8/2/95 [report_end]";
+        const research_paper = 'Low-grade gliomas in adults have an incidence of 0.8 to 1.2 per 100 000, and their causes are unknown. Despite their histological classification as low-grade, they cannot be cured by any current treatment mode, and no class I evidence exists to guide initial treatment of these tumors. Median survival ranges between 7.5 years and 10 years, with a 5-year survival probability between 55% and 86%. The prognosis depends on age, World Health Organization (WHO) tumor grade, Karnofsky performance score, cytological type (oligodendroglioma vs astrocytoma), and, potentially, the extent of resection. Oligodendrogliomas with loss of heterozygosity on chromosomes 1p and 19q have a distinctly more favorable prognosis and therapeutic response rate. Low-grade tumors progress to high-grade gliomas with aggressive biological behavior at increasing frequency with advancing age. Ms P is a young woman with a previously treated oligodendroglioma, WHO grade II, with loss of heterozygosity on chromosomes 1p and 19q, which at a third resection had transformed into an oligodendroglioma of WHO grade III. She wants to know her current and future therapeutic options.';
+        const lab_form = 'H. pylori DNA Analysis\n3\nDiagnostic\nSolutions\nlaboratory\n877-485-5336\nPatient: Ima Sample\nCollected: 2/10/2018\nDOB: 7/11/1981\nAccession: 20180212-0001\nReceived: 2/12/2018\nCompleted: 2/12/2018\nOrdered by: Diane Farhi, MD\nH. pylori\nResult\nNormal\n2.9e3\nHigh\n<1.0e3\nHelicobacter pylori\nVirulence Factor, babA\nPositive\nPositive\nVirulence Factor, cagA\nVirulence Factor, dupa\nVirulence Factor, iceA\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nNegative\nPositive\nPositive\nVirulence Factor, oipA\nVirulence Factor, vacA\nVirulence Factor, virB\nVirulence Factor, virD\nAntibiotic Resistance Genes, phenotypes\nHelicobacter\nResult\nClarithromycin\nPositive\nExpected Result\nAbsent\nA21420\nAbsent\nA2142G\nAbsent\nA2143G\nPresent\nFluoroquinolones\nNegative\nAbsent\ngyrA N87K\nAbsent\ngyrA D91N\nAbsent\ngyrA D91G\nAbsent\nAbsent\nAbsent\ngyrB S479N\nTetracycline\ngyrB R484K\nPositive\nAbsent\nPBP1A S414R\nPresent\nPBP1A T556S\nAbsent\nPBP1A N562Y\nAbsent\nAmoxicillin\nNegative\nAbsent\nA926G\nAbsent\nAGA926-928TTC Absent\nThe assays were developed and the perfomance characteristics\ndetermined by Diagnostic Solutions Laboratory.\nCLIA# 11D-2097795\nMedical Director - Diane Farhi, MD\n1\n';
+        const sample_texts = [medical_record, research_paper, lab_form];
+        const highlight_entities = new Set(['PROBLEM', 'PROCEDURE', 'MEDICINE', 'ANATOMICAL_STRUCTURE', 'LABORATORY_DATA', 'BODY_MEASUREMENT', 'MEDICAL_DEVICE', 'BODY_FUNCTION', 'SUBSTANCE_ABUSE'])
+
+
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                medical_object: null,
+                loading: false,
+                using_sample_text: true,
+                text_option: "0",
+                custom_text : "",
+                input_text: medical_record,
+                last_submitted_text : medical_record,
+                response_body: {},
+            },
+            watch:{
+                input_text:function(){
+                    // save text if it is custom
+                    if (this.text_option == 'custom')
+                        this.custom_text = this.input_text
+                },
+                text_option:function(){
+                    if (this.text_option == 'custom'){
+                        this.using_sample_text = false
+                        this.input_text = this.custom_text
+                    }else{
+                        this.using_sample_text = true
+                        this.input_text = sample_texts[parseInt(this.text_option)]
+                    }
+                }
+            },
+
+            updated: function () {
+                const tab_container = document.getElementById('tabs')
+                if (tab_container)
+                    componentHandler.upgradeElement(tab_container)
+
+                const loading_bar = document.getElementById('loading-bar')
+                if (loading_bar)
+                    componentHandler.upgradeElement(loading_bar)
+            },
+
+            computed: {
+
+                relationship_list:function(){
+
+                    var relationships = {}
+
+                    if (this.medical_object.relationships){
+
+                        this.medical_object.relationships.forEach(function(relationship){
+
+                            if (relationship.subjectId in relationships){
+                                relationships[relationship.subjectId].objects.push(app.medical_object.entityMentions[relationship.objectId - 1].text.content)
+                            }else{
+                                relationships[relationship.subjectId] = {'text': app.medical_object.entityMentions[relationship.subjectId - 1].text.content, 
+                                "objects":[app.medical_object.entityMentions[relationship.objectId - 1].text.content]}
+                            }
+                        });
+                    }
+
+                    return relationships
+                },
+                
+                interaction_list:function(){
+                	
+                	var interactions = this.medical_objects.interaction;
+                	
+                	return interactions;
+                	
+                	
+                },
+
+                parsed_text_parts: function () {
+
+                    var text_parts = []
+
+                    if (this.medical_object == null)
+                        return text_parts
+
+                    if (this.medical_object.entityMentions == null)
+                        return text_parts
+
+                    var cursor = 0
+
+                    this.medical_object.entityMentions.forEach(function (enitity_mention) {
+                        const text = enitity_mention.text.content
+                        const offset = enitity_mention.text.beginOffset || 0
+
+                        const text_before = app.medical_object.text.slice(cursor, offset)
+
+                        text_parts.push({ 'text': text_before, 'offset': offset, 'normal_text': true, 'type': null })
+                        text_parts.push({ 'text': text, 'offset': offset, 'normal_text': false, 'type': enitity_mention.type })
+
+                        cursor = offset + text.length
+                    });
+
+                    const remaining_text = app.medical_object.text.slice(cursor, app.medical_object.text.length)
+                    text_parts.push({ 'text': remaining_text, 'offset': cursor, 'normal_text': true, 'type': null })
+                    
+                    return text_parts
+                }
+            },
+            methods: {
+                get_css_class_for_type: function (entity_type) {
+                    // type of entities
+                    // {'PROBLEM', 'PROCEDURE', 'MEDICINE', 'ANATOMICAL_STRUCTURE', 'LABORATORY_DATA', 'BODY_MEASUREMENT', 'MEDICAL_DEVICE', 'BODY_FUNCTION', 'SUBSTANCE_ABUSE'}3
+                    
+                    if (highlight_entities.has(entity_type))
+                        return 'blue-highlighting'
+                    else if (entity_type)
+                        return 'blue-text'
+                    else 
+                        return ''
+
+                    // // Medicine: MEDICAL_DEVICE, MEDICINE, MED_DOSE, MED_DURATION, MED_FORM, MED_FREQUENCY, MED_ROUTE, MED_STATUS, MED_STRENGTH, MED_TOTALDOSE, MED_UNIT,
+                    // // Lab: LABORATORY_DATA, LAB_RESULT, LAB_UNIT, LAB_VALUE
+                    // // Body: BF_RESULT, BM_RESULT, BM_UNIT, BM_VALUE, BODY_FUNCTION, BODY_MEASUREMENT
+                    // // Procedure: PROCEDURE, PROCEDURE_RESULT, PROC_METHOD
+                    // if (!entity_type)
+                    //     return ''
+
+                    // if (entity_type.startsWith('MED'))
+                    //     return 'medicine'
+                    // else if (entity_type.startsWith('LAB'))
+                    //     return 'laboratory'
+                    // else if (entity_type.startsWith('BODY'))
+                    //     return 'body'
+                    // else if (entity_type.startsWith('PROC'))
+                    //     return 'procedure'
+                    // return ''
+                }
+            }
+        })
+
+        // $.getJSON("sample-output.json", function (medical_json) {
+        //     console.log(medical_json);
+        //     app.medical_object = medical_json
+        // });
+
+
+        
+        function analyse_text() {
+            // get text 
+            var text = app.input_text
+            console.log('input text: ' + text);
+
+            $.ajax({
+            url: "/callNLP",
+            type: "POST",
+            data: {'text':text},
+            dataType: 'JSON',
+            success: function(data){
+                console.log("from cloud function")
+                console.log(data)
+                app.medical_object = data
+                app.response_body['entities'] = data.entities
+                app.response_body['entityMentions'] = data.entityMentions
+                app.response_body['relationships'] = data.relationships
+                app.response_body['interaction'] = data.interaction;
+            },
+            beforeSend:function(){
+                // start loading
+                app.loading = true
+                app.medical_object = null
+            }})
+            .done(function(data) {
+                // stop loading
+                app.last_submitted_text = text
+                app.loading = false
+            })
+            .fail(function(data) {
+
+            });
+        }
+
+        function download_response() {
+            var link = document.createElement('a');
+            link.download = 'response.json';
+            var blob = new Blob([JSON.stringify(app.response_body, null, 2)], {type: 'text/plain'});
+            link.href = window.URL.createObjectURL(blob);
+            link.click();
+        }
+
+    </script>
+
+
+</body>
+
+
+</html>
